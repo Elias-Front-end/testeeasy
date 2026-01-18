@@ -1,0 +1,6 @@
+{
+    "name": "teste/easypanel-php",
+    "description": "Teste de deploy no EasyPanel com PHP",
+    "type": "project",
+    "require": {}
+}
