@@ -10,23 +10,32 @@ $options = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ];
-try {
-    $pdo = new PDO($dsn, $user, $password, $options);
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-    );
-} catch (PDOException $e) {
-    http_response_code(500);
-    if ($debug) {
-        echo 'Erro ao conectar ao banco de dados: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    } else {
-        echo 'Erro ao conectar ao banco de dados.';
+$attempts = 0;
+$maxAttempts = 5;
+while (true) {
+    try {
+        $pdo = new PDO($dsn, $user, $password, $options);
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
+        break;
+    } catch (PDOException $e) {
+        $attempts++;
+        if ($attempts >= $maxAttempts) {
+            http_response_code(500);
+            if ($debug) {
+                echo 'Erro ao conectar ao banco de dados: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            } else {
+                echo 'Erro ao conectar ao banco de dados.';
+            }
+            exit;
+        }
+        sleep(2);
     }
-    exit;
 }
 
